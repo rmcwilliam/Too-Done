@@ -16,29 +16,31 @@ module TooDone
     option :list, :aliases => :l, :default => "*default*", # option; what is passed on the command line or else = default 
       :desc => "The todo list which the task will be filed under."
     option :date, :aliases => :d,
-      :desc => "A Due Date in YYYY-MM-DD format."
+      :desc => "A Due Date in YYYY-MM-DD format."     # tasks add "Mop" -l "Ryan's Chores" -d 2015-10-10
     def add(task)
       list = ToDoList.find_or_create_by(name: options[:list] , user_id:  current_user.id)
-      Task.create(name: task, list_id: list.id) 
+      Task.create(name: task, list_id: list.id, due_date: options[:date]) 
+      #binding.pry
     end
 
     desc "edit", "Edit a task from a todo list."
     option :list, :aliases => :l, :default => "*default*",
       :desc => "The todo list whose tasks will be edited."
     def edit
-      lists = ToDoList.order(:name)
-      lists.each do |list|
-        puts "List name: #{list.name} List id: #{list.id}"
-      end
-      puts "Please choose the id of the list you wish to access"
-      choice = STDIN.gets.chomp.to_i
-      task = Task.find_by! list_id: choice
-      binding.pry
+      list = ToDoList.find_by(user_id: current_user.id, name: options[:list]) 
+        if list == nil 
+          puts "No list found. Does not compute."
+          exit
+        end
 
+      tasks = Task.where(completed: false)
+      tasks.each do |task| 
+      puts "Uncompleted tasks name: #{task.name} task-id: #{task.id} list-id: #{task.list_id}"
+      #binding.pry
+      end 
+          
 
-      # task.update
-      
-
+    
       # find the right todo list
       # BAIL if it doesn't exist and have tasks
       # display the tasks and prompt for which one to edit
@@ -63,6 +65,7 @@ module TooDone
       :desc => "Sorting by 'history' (chronological) or 'overdue'.
       \t\t\t\t\tLimits results to those with a due date."
     def show
+
       # find or create the right todo list
       # show the tasks ordered as requested, default to reverse order (recently entered first)
     end
