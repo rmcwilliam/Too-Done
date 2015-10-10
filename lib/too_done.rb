@@ -20,20 +20,28 @@ module TooDone
     def add(task)
       list = ToDoList.find_or_create_by(name: options[:list] , user_id:  current_user.id)
       Task.create(name: task, list_id: list.id) 
-      #binding.pry
     end
 
     desc "edit", "Edit a task from a todo list."
     option :list, :aliases => :l, :default => "*default*",
       :desc => "The todo list whose tasks will be edited."
     def edit
-      # if options[:list]
-      #   list = Go get that list from the database
-      # else
+      lists = ToDoList.order(:name)
+      lists.each do |list|
+        puts "List name: #{list.name} List id: #{list.id}"
+      end
+      puts "Please choose the id of the list you wish to access"
+      choice = STDIN.gets.chomp.to_i
+      task = Task.find_by! list_id: choice
+      binding.pry
 
-      # find the right todo list (IF THEY SUPPLIED A LIST OPTION, GET THAT ONE)
+
+      # task.update
+      
+
+      # find the right todo list
       # BAIL if it doesn't exist and have tasks
-      # display the tasks and prompt for which one to edit # INPUT VALIDATION BECAUSE IT HAS OPTION#
+      # display the tasks and prompt for which one to edit
       # allow the user to change the title, due date
     end
 
