@@ -12,26 +12,15 @@ require "pry"
 module TooDone
   class App < Thor
 
-    desc "add 'TASK'", "Add a TASK to a todo list."  # description
+    desc "add 'TASK'", "Add a TASK to a todo list."  
     option :list, :aliases => :l, :default => "*default*", # option; what is passed on the command line or else = default 
       :desc => "The todo list which the task will be filed under."
     option :date, :aliases => :d,
       :desc => "A Due Date in YYYY-MM-DD format."
     def add(task)
       list = ToDoList.find_or_create_by(name: options[:list] , user_id:  current_user.id)
-      Task.create(name: task, to_do_list_id: list.id)
-      
-      binding.pry
-      # display to-do-lists asociated with user-id
-      # If the user would like to select an existing list to add a task to?
-        # user input = name of list
-        # create new task w/(name, due-date) in associated list by using list_id
-
-      # else create new list w/name 
-        # create new task w/(name, due-date)
-      
-      # find or create the right todo list
-      # create a new item under that list, with optional date
+      Task.create(name: task, list_id: list.id) 
+      #binding.pry
     end
 
     desc "edit", "Edit a task from a todo list."
