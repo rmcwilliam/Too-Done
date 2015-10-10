@@ -3,18 +3,33 @@ require "too_done/init_db"
 require "too_done/user"
 require "too_done/session"
 
+require "too_done/to_do_list"
+require "too_done/task"
+
 require "thor"
 require "pry"
 
 module TooDone
   class App < Thor
 
-    desc "add 'TASK'", "Add a TASK to a todo list."
-    option :list, :aliases => :l, :default => "*default*",
+    desc "add 'TASK'", "Add a TASK to a todo list."  # description
+    option :list, :aliases => :l, :default => "*default*", # option; what is passed on the command line or else = default 
       :desc => "The todo list which the task will be filed under."
     option :date, :aliases => :d,
       :desc => "A Due Date in YYYY-MM-DD format."
     def add(task)
+      list = ToDoList.find_or_create_by(name: options[:list] , user_id:  current_user.id)
+      Task.create(name: task, to_do_list_id: list.id)
+      
+      binding.pry
+      # display to-do-lists asociated with user-id
+      # If the user would like to select an existing list to add a task to?
+        # user input = name of list
+        # create new task w/(name, due-date) in associated list by using list_id
+
+      # else create new list w/name 
+        # create new task w/(name, due-date)
+      
       # find or create the right todo list
       # create a new item under that list, with optional date
     end
@@ -23,9 +38,13 @@ module TooDone
     option :list, :aliases => :l, :default => "*default*",
       :desc => "The todo list whose tasks will be edited."
     def edit
-      # find the right todo list
+      # if options[:list]
+      #   list = Go get that list from the database
+      # else
+
+      # find the right todo list (IF THEY SUPPLIED A LIST OPTION, GET THAT ONE)
       # BAIL if it doesn't exist and have tasks
-      # display the tasks and prompt for which one to edit
+      # display the tasks and prompt for which one to edit # INPUT VALIDATION BECAUSE IT HAS OPTION#
       # allow the user to change the title, due date
     end
 
@@ -43,7 +62,7 @@ module TooDone
       :desc => "The todo list whose tasks will be shown."
     option :completed, :aliases => :c, :default => false, :type => :boolean,
       :desc => "Whether or not to show already completed tasks."
-    option :sort, :aliases => :s, :enum => ['history', 'overdue'],
+    option :sort, :aliases => :s, :enum => ['history', 'overdue'], # two options for sort by
       :desc => "Sorting by 'history' (chronological) or 'overdue'.
       \t\t\t\t\tLimits results to those with a due date."
     def show
@@ -77,5 +96,5 @@ module TooDone
   end
 end
 
-# binding.pry
+
 TooDone::App.start(ARGV)
