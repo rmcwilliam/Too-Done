@@ -28,19 +28,23 @@ module TooDone
       :desc => "The todo list whose tasks will be edited."
     def edit
       list = ToDoList.find_by(user_id: current_user.id, name: options[:list]) 
-        if list == nil 
+        if list == nil
           puts "No list found. Does not compute."
-          exit
+          exit                                       # FIND FIX: When invalid or no list name passed in prompt, default tasks always shown                                  
+        end                                                    # instead of all incomplete tasks; see commented out list_id below
+      tasks = Task.where(completed: false) #list_id: list.id) 
+        tasks.each do |task| 
+          puts "Uncompleted task: #{task.name} task-id: #{task.id}"
         end
-
-      tasks = Task.where(completed: false)
-      tasks.each do |task| 
-      puts "Uncompleted tasks name: #{task.name} task-id: #{task.id} list-id: #{task.list_id}"
-      #binding.pry
-      end 
-          
-
-    
+        puts "Please choose the task id you would like to change the title for:"
+        choice = STDIN.gets.chomp.to_i
+        puts "What would you like the new title to be?"
+        edits = STDIN.gets.chomp.to_s
+        puts "If you would like to enter or modify a due date, type it in the following format: YYYY-MM-DD. If not, just hit return."
+        date = STDIN.gets.chomp
+        Task.update(choice, name: edits, due_date: date)
+        puts "Update complete, goodbye!"
+       
       # find the right todo list
       # BAIL if it doesn't exist and have tasks
       # display the tasks and prompt for which one to edit
