@@ -80,7 +80,7 @@ module TooDone
     desc "show", "Show the tasks on a todo list in reverse order."
     option :list, :aliases => :l, :default => "*default*",
       :desc => "The todo list whose tasks will be shown."
-    option :completed, :aliases => :c, :default => false, :type => :boolean, # tasks show -l "Fun" -c true -s 'history'
+    option :completed, :aliases => :c, :default => false, :type => :boolean, # tasks show -l "Fun" -c -s 'history'
       :desc => "Whether or not to show already completed tasks."
     option :sort, :aliases => :s, :enum => ['history', 'overdue'], # two options for sort by
       :desc => "Sorting by 'history' (chronological) or 'overdue'.
@@ -88,15 +88,21 @@ module TooDone
     def show
       list = ToDoList.find_by(user_id: current_user.id, name: options[:list]) 
         if list == nil
+          puts "No list found. Does not compute."
           exit
         end
 
       tasks = Task.where(completed: false, list_id: list.id)
       tasks = tasks.where completed: false unless options[:completed] # This will not work wrapped in parenthesis....??
-
-      binding.pry
-     tasks = tasks.order(due_date: desc) # tasks order(descending) = farthest away due_date first
-     if options[:sort] = 'history' # tasks order(ascending) = soonest due_date first
+        if tasks == nil
+          puts "No tasks found. Does not compute."
+          exit
+        end
+                                                              # FIND FIX: DESC and ASC seem to be producing the same results
+     tasks = tasks.order(due_date: :desc) # farthest away due_date first 
+     tasks = tasks.order due_date: :asc if options[:sort] == 'history' # soonest due_date first
+     tasks.each do |task|
+      puts "Task name: #{task.name} | Task id: #{task.id} | Completed: #{task.completed} | Due Date: #{task.due_date}"
      end
 
       # find or create the right todo list
