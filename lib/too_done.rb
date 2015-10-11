@@ -31,8 +31,8 @@ module TooDone
         if list == nil
           puts "No list found. Does not compute."
           exit                                       # FIND FIX: When invalid or no list name passed in prompt, default tasks always shown                                  
-        end                                                    # instead of all incomplete tasks; see commented out list_id below
-      tasks = Task.where(completed: false) #list_id: list.id) 
+        end                         
+      tasks = Task.where(completed: false, list_id: list.id) #list_id: list.id) 
         tasks.each do |task| 
           puts "Uncompleted task: #{task.name} task-id: #{task.id}"
         end
