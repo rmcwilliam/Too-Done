@@ -112,15 +112,27 @@ module TooDone
     option :user, :aliases => :u,
       :desc => "The user which will be deleted (including lists and items)."
     def delete
-      if options[:list] && options[:user]
+      if options[:list] && options[:user] # I have to change user to its alias here to get some stuff to work??
         puts "Does not copmute. You have to provide either the user or the list, not both."
         exit
       end
 
-      if options[:list] || options[:user] == nil
+      unless options[:list] || options[:user] # I have to change user to its alias to get some stuff to work??
         puts "You must provide a user or a list. One or the other. Come on, it's not that hard!"
         exit
       end
+
+      user = User.find_by name: options[:user] if options[:user] # Keeps processing this line even when given a list!!!! WTF  
+      if user == nil
+        puts "Does not compute. Could not find the user you requested."
+        exit
+      end
+      list = ToDoList.find_by user_id: current_user.id, name: options[:list] if options[:list]
+      if list == nil
+        puts "Does not compute. Could not find the list you requested."
+        exit
+      end
+      binding.pry
 
       # BAIL if both list and user options are provided
       # BAIL if neither list or user option is provided
