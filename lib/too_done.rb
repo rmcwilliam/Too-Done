@@ -66,7 +66,7 @@ module TooDone
         puts "Task Name: #{task.name} | Task id: #{task.id} | Task Completed: #{task.completed}"
         end
       puts "Please choose the task id you would like to mark as completed:" 
-      done = STDIN.gets.chomp.to_i                # Input validation. Blows up without correct task id..
+      done = STDIN.gets.chomp.to_i               # Input validation. Blows up without correct task id..
       tasks = Task.update(done, completed: true)
       #binding.pry
 
@@ -112,6 +112,16 @@ module TooDone
     option :user, :aliases => :u,
       :desc => "The user which will be deleted (including lists and items)."
     def delete
+      if options[:list] && options[:user]
+        puts "Does not copmute. You have to provide either the user or the list, not both."
+        exit
+      end
+
+      if options[:list] || options[:user] == nil
+        puts "You must provide a user or a list. One or the other. Come on, it's not that hard!"
+        exit
+      end
+
       # BAIL if both list and user options are provided
       # BAIL if neither list or user option is provided
       # find the matching user or list
