@@ -71,7 +71,7 @@ module TooDone
       done = STDIN.gets.chomp.to_s
       Task.where(name: done).update(completed: true)
       #binding.pry
-      
+
       # find the right todo list
       # BAIL if it doesn't exist and have tasks
       # display the tasks and prompt for which one(s?) to mark done
@@ -92,10 +92,11 @@ module TooDone
         end
 
       tasks = Task.where(completed: false, list_id: list.id)
-      tasks = tasks.where completed: false unless options[:completed]
+      tasks = tasks.where completed: false unless options[:completed] # This will not work wrapped in parenthesis....??
 
       binding.pry
-     if options[:sort] = 'history'
+     tasks = tasks.order(due_date: desc) # tasks order(descending) = farthest away due_date first
+     if options[:sort] = 'history' # tasks order(ascending) = soonest due_date first
      end
 
       # find or create the right todo list
