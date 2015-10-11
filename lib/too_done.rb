@@ -52,9 +52,26 @@ module TooDone
     end
 
     desc "done", "Mark a task as completed."
-    option :list, :aliases => :l, :default => "*default*",
+    option :list, :aliases => :l, :default => "*default*",  # tasks show -l "Ryan's Chores"
       :desc => "The todo list whose tasks will be completed."
     def done
+    list = ToDoList.find_by(user_id: current_user.id, name: options[:list])
+      if list == nil                      
+        exit
+      else
+        list.each do |list|
+          puts "{#{list.name}"
+          end
+      end
+        tasks = Task.where(completed: false, list_id: list.id)
+        tasks.each do |task|
+        puts "#{task.name}"
+      end
+      puts "Please choose the task you would like to mark as completed"
+      done = STDIN.gets.chomp.to_s
+      Task.where(name: done).update(completed: true)
+      #binding.pry
+      
       # find the right todo list
       # BAIL if it doesn't exist and have tasks
       # display the tasks and prompt for which one(s?) to mark done
@@ -63,12 +80,23 @@ module TooDone
     desc "show", "Show the tasks on a todo list in reverse order."
     option :list, :aliases => :l, :default => "*default*",
       :desc => "The todo list whose tasks will be shown."
-    option :completed, :aliases => :c, :default => false, :type => :boolean,
+    option :completed, :aliases => :c, :default => false, :type => :boolean, # tasks show -l "Fun" -c true -s 'history'
       :desc => "Whether or not to show already completed tasks."
     option :sort, :aliases => :s, :enum => ['history', 'overdue'], # two options for sort by
       :desc => "Sorting by 'history' (chronological) or 'overdue'.
       \t\t\t\t\tLimits results to those with a due date."
     def show
+      list = ToDoList.find_by(user_id: current_user.id, name: options[:list]) 
+        if list == nil
+          exit
+        end
+
+      tasks = Task.where(completed: false, list_id: list.id)
+      tasks = tasks.where completed: false unless options[:completed]
+
+      binding.pry
+     if options[:sort] = 'history'
+     end
 
       # find or create the right todo list
       # show the tasks ordered as requested, default to reverse order (recently entered first)
