@@ -107,38 +107,40 @@ module TooDone
     end
 
     desc "delete [LIST OR USER]", "Delete a todo list or a user."
-    option :list, :aliases => :l, :default => "*default*",             # tasks delete -l "Fun" -u "ryan" 
+    option :list, :aliases => :l,             # tasks delete -l "Fun" -u "ryan" 
       :desc => "The todo list which will be deleted (including items)."
     option :user, :aliases => :u,
       :desc => "The user which will be deleted (including lists and items)."
     def delete
       #binding.pry
-      # if options[:list] && options[:user] 
-      #   puts "Does not copmute. You have to provide either the user or the list, not both."
-      #   exit
-      # end
+      if options[:list] && options[:user] 
+        puts "Does not compute. You have to provide either the user or the list, not both."
+        exit
+      end
 
-      # unless options[:list] || options[:user] # I have to change user/list to its alias to get some of the functionality
-      #   puts "You must provide a user or a list. One or the other. Come on, it's not that hard!"
-      #   exit
-      # end
-      #binding.pry
-      # user = User.find_by name: options[:user] if options[:user] # Keeps processing this line even when given a list!!!!  
-      # if user == nil
-      #   puts "Does not compute. Could not find the user you requested."
-      #   exit
-      # end
-      list = ToDoList.find_by user_id: current_user.id, name: options[:list] if options[:list]
-      if list == nil
-        puts "Does not compute. Could not find the list you requested."
+      if options[:list].nil? && options[:user].nil? 
+        puts "You must provide a user or a list. One or the other. Come on, it's not that hard!"
         exit
       end
       #binding.pry
-      ToDoList.destroy_all(name: options[:list])# This works.    ## destroy_all vs delete_all #
-      #User.destroy_all(name: options[:list])
+      if options[:user] && options[:list].nil?
+        user = User.find_by name: options[:user] # Keeps processing this line even when given a list!!!!
+        if user.nil?
+          puts "Does not compute. Could not find the user you requested."
+          exit
+        end
+        user.destroy
+      elsif options[:list] && options[:user].nil?
+        list = ToDoList.find_by user_id: current_user.id, name: options[:list]
+        if list.nil? # same as == nil
+          puts "Does not compute. Could not find the list you requested."
+          exit
+        end
+        list.destroy
+      end  
+                 ## destroy_all vs delete_all 
 
       binding.pry
-
       # BAIL if both list and user options are provided
       # BAIL if neither list or user option is provided
       # find the matching user or list
