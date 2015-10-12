@@ -30,7 +30,7 @@ module TooDone
       list = ToDoList.find_by(user_id: current_user.id, name: options[:list]) 
         if list == nil
           puts "No list found. Does not compute."
-          exit                                   # FIND FIX: When invalid or no list name passed in prompt, default tasks always shown                                  
+          exit                                                                     
         end                         
       tasks = Task.where(completed: false, list_id: list.id)  
         tasks.each do |task| 
@@ -112,26 +112,31 @@ module TooDone
     option :user, :aliases => :u,
       :desc => "The user which will be deleted (including lists and items)."
     def delete
-      if options[:list] && options[:user] # I have to change user to its alias here to get some stuff to work??
-        puts "Does not copmute. You have to provide either the user or the list, not both."
-        exit
-      end
+      #binding.pry
+      # if options[:list] && options[:user] 
+      #   puts "Does not copmute. You have to provide either the user or the list, not both."
+      #   exit
+      # end
 
-      unless options[:list] || options[:user] # I have to change user to its alias to get some stuff to work??
-        puts "You must provide a user or a list. One or the other. Come on, it's not that hard!"
-        exit
-      end
-
-      user = User.find_by name: options[:user] if options[:user] # Keeps processing this line even when given a list!!!! WTF  
-      if user == nil
-        puts "Does not compute. Could not find the user you requested."
-        exit
-      end
+      # unless options[:list] || options[:user] # I have to change user/list to its alias to get some of the functionality
+      #   puts "You must provide a user or a list. One or the other. Come on, it's not that hard!"
+      #   exit
+      # end
+      #binding.pry
+      # user = User.find_by name: options[:user] if options[:user] # Keeps processing this line even when given a list!!!!  
+      # if user == nil
+      #   puts "Does not compute. Could not find the user you requested."
+      #   exit
+      # end
       list = ToDoList.find_by user_id: current_user.id, name: options[:list] if options[:list]
       if list == nil
         puts "Does not compute. Could not find the list you requested."
         exit
       end
+      #binding.pry
+      ToDoList.destroy_all(name: options[:list])# This works.    ## destroy_all vs delete_all #
+      #User.destroy_all(name: options[:list])
+
       binding.pry
 
       # BAIL if both list and user options are provided
