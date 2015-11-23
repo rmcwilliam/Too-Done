@@ -13,15 +13,15 @@ module TooDone
   class App < Thor
 
     desc "add 'TASK'", "Add a TASK to a todo list."  
-    option :list, :aliases => :l, :default => "*default*", # option; what is passed on the command line or else = default 
+    option :list, :aliases => :l, :default => "*default*", 
       :desc => "The todo list which the task will be filed under."
     option :date, :aliases => :d,
       :desc => "A Due Date in YYYY-MM-DD format."     # tasks add "Mop" -l "Ryan's Chores" -d 2015-10-10
     def add(task)
       list = ToDoList.find_or_create_by(name: options[:list] , user_id:  current_user.id)
       Task.create(name: task, list_id: list.id, due_date: options[:date]) 
-      #binding.pry
     end
+
 
     desc "edit", "Edit a task from a todo list."
     option :list, :aliases => :l, :default => "*default*",
@@ -32,25 +32,24 @@ module TooDone
           puts "No list found. Does not compute."
           exit                                                                     
         end                         
-      tasks = Task.where(completed: false, list_id: list.id)  
+      tasks = Task.where(list_id: list.id, completed: false)  
         tasks.each do |task| 
           puts "Uncompleted task: #{task.name} | task-id: #{task.id}"
         end
-        puts "Please choose the task id you would like to change the title for:"
-        choice = STDIN.gets.chomp.to_i
-        puts "What would you like the new title to be?"  # This way requires a lot of input validation... Another way with less?
-        edits = STDIN.gets.chomp.to_s
-        puts "If you would like to enter or modify a due date, type it in the following format: YYYY-MM-DD. If not, just hit return."
-        date = STDIN.gets.chomp
-        Task.update(choice, name: edits, due_date: date)
-        puts "Update complete, goodbye!"
-       
-      # find the right todo list
-      # BAIL if it doesn't exist and have tasks
-      # display the tasks and prompt for which one to edit
-      # allow the user to change the title, due date
-    end
+        puts "Please choose the task id you would like to edit:"
+        task_id = STDIN.gets.chomp.to_i
+        puts "What would you like the new title to be? Leave blank and hit if no change is required"  
+        new_title = STDIN.gets.chomp.to_s
+        puts "If you would like to enter or modify a due date, type it in the following format: YYYY-MM-DD. Leave blank and hit return if no change is required."
+        new_due_date = STDIN.gets.chomp
 
+        edit_task = Task.find(task_id)
+        edit_task.name = new_title unless new_title.empty?
+        edit_task.new_due_date = new_due_date unless new_due_date.empty?
+        edit_task.update
+        puts "Update complete, goodbye!"
+    end
+  
     desc "done", "Mark a task as completed."
     option :list, :aliases => :l, :default => "*default*",  # tasks show -l "Ryan's Chores"
       :desc => "The todo list whose tasks will be completed."
@@ -63,16 +62,11 @@ module TooDone
 
       tasks = Task.where(completed: false, list_id: list.id)
         tasks.each do |task|
-        puts "Task Name: #{task.name} | Task id: #{task.id} | Task Completed: #{task.completed}"
+          puts "Task Name: #{task.name} | Task id: #{task.id} | Task Completed: #{task.completed}"
         end
       puts "Please choose the task id you would like to mark as completed:" 
-      done = STDIN.gets.chomp.to_i               # Input validation. Blows up without correct task id..
+      done = STDIN.gets.chomp.to_i               
       tasks = Task.update(done, completed: true)
-      #binding.pry
-
-      # find the right todo list
-      # BAIL if it doesn't exist and have tasks
-      # display the tasks and prompt for which one(s?) to mark done
     end
 
     desc "show", "Show the tasks on a todo list in reverse order."
@@ -80,7 +74,7 @@ module TooDone
       :desc => "The todo list whose tasks will be shown."
     option :completed, :aliases => :c, :default => false, :type => :boolean, # tasks show -l "Fun" -c -s 'history'
       :desc => "Whether or not to show already completed tasks."
-    option :sort, :aliases => :s, :enum => ['history', 'overdue'], # two options for sort by
+    option :sort, :aliases => :s, :enum => ['history', 'overdue'], 
       :desc => "Sorting by 'history' (chronological) or 'overdue'.
       \t\t\t\t\tLimits results to those with a due date."
     def show
@@ -91,19 +85,17 @@ module TooDone
         end
 
       tasks = Task.where(completed: false, list_id: list.id)
-      tasks = tasks.where completed: false unless options[:completed] # This will not work wrapped in parenthesis....??
+      tasks = tasks.where(completed: false) unless options[:completed] 
         if tasks == nil
           puts "No tasks found. Does not compute."
           exit
         end
-                                                              # FIND FIX: DESC and ASC seem to be producing the same results
-      tasks = tasks.order(due_date: :desc) # farthest away due_date first 
-      tasks = tasks.order due_date: :asc if options[:sort] == 'history' # soonest due_date first
+                                                      
+      tasks = tasks.order(due_date: :desc) 
+      tasks = tasks.order due_date: :asc if options[:sort] == 'history' 
       tasks.each do |task|
-      puts "Task name: #{task.name} | Task id: #{task.id} | Completed: #{task.completed} | Due Date: #{task.due_date}"
+        puts "Task name: #{task.name} | Task id: #{task.id} | Completed: #{task.completed} | Due Date: #{task.due_date}"
       end
-      # find or create the right todo list
-      # show the tasks ordered as requested, default to reverse order (recently entered first)
     end
 
     desc "delete [LIST OR USER]", "Delete a todo list or a user."
@@ -112,7 +104,6 @@ module TooDone
     option :user, :aliases => :u,
       :desc => "The user which will be deleted (including lists and items)."
     def delete
-      #binding.pry
       if options[:list] && options[:user] 
         puts "Does not compute. You have to provide either the user or the list, not both."
         exit
@@ -122,9 +113,9 @@ module TooDone
         puts "You must provide a user or a list. One or the other. Come on, it's not that hard!"
         exit
       end
-      #binding.pry
+
       if options[:user] && options[:list].nil?
-        user = User.find_by name: options[:user] # Keeps processing this line even when given a list!!!!
+        user = User.find_by name: options[:user] 
         if user.nil?
           puts "Does not compute. Could not find the user you requested."
           exit
@@ -132,20 +123,12 @@ module TooDone
         user.destroy
       elsif options[:list] && options[:user].nil?
         list = ToDoList.find_by user_id: current_user.id, name: options[:list]
-        if list.nil? # same as == nil
+        if list.nil? 
           puts "Does not compute. Could not find the list you requested."
           exit
         end
         list.destroy
       end  
-                 ## destroy_all vs delete_all 
-
-      binding.pry
-      # BAIL if both list and user options are provided
-      # BAIL if neither list or user option is provided
-      # find the matching user or list
-      # BAIL if the user or list couldn't be found
-      # delete them (and any dependents)
     end
 
     desc "switch USER", "Switch session to manage USER's todo lists." # tasks switch(ryan)
