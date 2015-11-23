@@ -1,5 +1,5 @@
 module TooDone
-  class Session < ActiveRecord::Base # written assuming pluralized table exists 
+  class Session < ActiveRecord::Base  
     belongs_to :user
   end
 end
